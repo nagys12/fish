@@ -2,167 +2,241 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <link rel="stylesheet" href="main.css">
-  <title>Clicker</title>
+  <title>Fishing Clicker</title>
 </head>
 <body>
-    <h1>Fish Clicker</h1>
-    <h2 id="FPS">Fish per Second(0)</h2>
-    <h3 id="quantity">0</h3>
-    <button id="fishing_button">+1</button><br>
+  <div class="Stats_container">
+    <h3 class="stats" id="sons_number">Sons(0)</h3>
+    <h3 class="stats" id="fishermen_number">Fishermen(0)</h3>
+    <h3 class="stats" id="dads_number">Dads(0)</h3>
+    <h3 class="stats" id="bobber_number">Bobbers(0)</h3>
+    <h3 class="stats" id="lure_number">Lures(0)</h3>
+    <h3 class="stats" id="rod_number">Rods(0)</h3>
+  </div>
+
+  <h1>Fishing Clicker</h1>
+  <h2 id="fps">Fish per Second(0)</h2>
+  <h3 id="quantity">0</h3>
+  <button id="fishing_button">+1</button>
   <div class="container">
     <div class="leftBox">
-      <button id="bobber" class="wide_button">Buy Bobber (+1 per click)(-50)</button><br>
-      <button id="lure" class="wide_button">Buy Lure (+3 per click)(-200)</button>
+      <button id="bobber" class="wide_button">Buy Bobber (+1/click)(-50)</button><br>
+      <button id="lure"   class="wide_button">Buy Lure (+3/click)(-200)</button><br>
+      <button id="rod"    class="wide_button">Buy Rod (+5/click)(-1000)</button>
     </div>
     <div class="rightBox">
-      <button id="hire_son" class="wide_button">Hire Son (+1/5s)(-100)</button><br>
-      <button id="hire_fisher" class="wide_button">Hire Fisherman (+1/1s)(-500)</button><br>
+      <button id="hire_son"     class="wide_button">Hire Son (+1/5s)(-100)</button><br>
+      <button id="hire_fisher"  class="wide_button">Hire Fisherman (+1/1s)(-500)</button><br>
+      <button id="hire_dad"     class="wide_button">Hire Dad (+1/0.5s)(-1500)</button>
     </div>
   </div>
-    <button id="reset">Restart Game</button><br>
-    <h3 id="notice"></h3>
-
+  <div id="notice"></div>
 
   <script>
-    const quantity = document.getElementById("quantity");
-    const fishingButton = document.getElementById("fishing_button");
-    const resetButton = document.getElementById("reset");
-    const bobberButton = document.getElementById("bobber");
-    const noticeMessage = document.getElementById("notice");
-    const sonButton = document.getElementById("hire_son");
-    const fisherButton = document.getElementById("hire_fisher");
-    const lureButton = document.getElementById("lure")
-    const FPS = document.getElementById("FPS")
+  //–– ELEMENTS ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+  const $
+    = id => document.getElementById(id)
 
-    let bobberCost = 50;
-    let lureCost = 200;
-    let clickValue = 1;
-    let current = 0;
-    let Children = 0;
-    let hireSonCost = 100;
-    let sonSpeed;
-    let fishers = 0;
-    let fisherCost = 500;
-    let fisherSpeed;
+  const qty        = $('quantity')
+  const notice     = $('notice')
+  const fiskBtn    = $('fishing_button')
+  const bobBtn     = $('bobber')
+  const lureBtn    = $('lure')
+  const rodBtn     = $('rod')
+  const sonBtn     = $('hire_son')
+  const fisherBtn  = $('hire_fisher')
+  const dadBtn     = $('hire_dad')
+  const fpsLabel   = $('fps')
+  const stats = {
+    sons:      $('sons_number'),
+    fishers:   $('fishermen_number'),
+    dads:      $('dads_number'),
+    bobbers:   $('bobber_number'),
+    lures:     $('lure_number'),
+    rods:      $('rod_number')
+  }
 
-    function findFPS() {
-      let totalFPS = 0;
-        if (sonSpeed || fisherSpeed) {
-          const sonRate = sonSpeed ? (Children / 5) : 0;
-          const fisherRate = fisherSpeed ? fishers : 0;
-          totalFPS = sonRate + fisherRate;
-        }
-      FPS.textContent = `Fish per Second(${totalFPS.toFixed(2)})`;
-    }
+  //–– STATE –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+  let current     = 0
+  let clickValue  = 1
+
+  let bobberCost  = 50
+  let lureCost    = 200
+  let rodCost     = 1000
+
+  let hireSonCost    = 100
+  let hireFisherCost = 500
+  let hireDadCost    = 1500
+
+  let kids     = 0
+  let fishers  = 0
+  let dads     = 0
+
+  let bobbers  = 0
+  let lures    = 0
+  let rods     = 0
+
+  let sonInterval    = null
+  let fisherInterval = null
+  let dadInterval    = null
+
+  //–– DISPLAY –––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+  function updateStats() {
+    stats.sons.textContent     = `Sons(${kids})`
+    stats.fishers.textContent  = `Fishermen(${fishers})`
+    stats.dads.textContent     = `Dads(${dads})`
+    stats.bobbers.textContent  = `Bobbers(${bobbers})`
+    stats.lures.textContent    = `Lures(${lures})`
+    stats.rods.textContent     = `Rods(${rods})`
+  }
+
+  function calculateFPS() {
+    // Sons: +1 every 5s → kids/5
+    // Fishers: +1 every 1s → fishers
+    // Dads: +1 every 0.5s → dads * 2
+    const rate = kids/5 + fishers + dads*2
+    fpsLabel.textContent = `Fish per Second(${rate.toFixed(2)})`
+  }
+
+  function updateButtons() {
+    fiskBtn.textContent   = `+${clickValue}`
+    bobBtn.textContent    = `Buy Bobber (+1/click)(-${bobberCost})`
+    lureBtn.textContent   = `Buy Lure (+3/click)(-${lureCost})`
+    rodBtn.textContent    = `Buy Rod (+5/click)(-${rodCost})`
+    sonBtn.textContent    = `Hire Son (+1/5s)(-${hireSonCost})`
+    fisherBtn.textContent = `Hire Fisherman (+1/1s)(-${hireFisherCost})`
+    dadBtn.textContent    = `Hire Dad (+1/0.5s)(-${hireDadCost})`
+  }
 
   function updateDisplay() {
-    quantity.textContent = "$" + current;
-    fishingButton.textContent = "+ " + clickValue;
-    findFPS();
+    qty.textContent = current
+    calculateFPS()
+    updateStats()
+    updateButtons()
   }
 
-  function fishingClick() {
-    current += clickValue;
-    noticeMessage.textContent = "";
-    updateDisplay();
-  }
-
-  function reset_zero() {
-    current = 0;
-    clickValue = 1;
-    upgradeCost = 50;
-    upgradeButton.textContent = "Buy Bobber (+1 per click)(-50)";
-    Children = 0;
-    fishers = 0;
-    hireSonCost = 100;
-    FisherCost = 500;
-    sonButton.textContent = "Hire Son (+1/5s)(-100)";
-    fisherButton.textContent = "Hire Fisherman (+1/1s)(-500)";
-    clearInterval(sonSpeed);
-    clearInterval(fisherSpeed);
-    sonSpeed = null;
-    fisherSpeed = null;
-    updateDisplay();
-  }
-
-  function bobberUpgrade() {
-    if (current >= bobberCost) {
-      current -= bobberCost;
-      bobberCost *= 4;
-      clickValue += 1;
-      bobberButton.textContent = `Buy Bobber (+1 per click)(-${bobberCost})`;
-      updateDisplay();
-    } else {
-      noticeMessage.textContent = "Insuffishent Funds!";
+  //–– PERSISTENCE ––––––––––––––––––––––––––––––––––––––––––––––––––––––
+  function save() {
+    const data = {
+      current, clickValue,
+      bobberCost, lureCost, rodCost,
+      hireSonCost, hireFisherCost, hireDadCost,
+      kids, fishers, dads,
+      bobbers, lures, rods
     }
+    localStorage.setItem('clickerSave', JSON.stringify(data))
   }
 
-    function lureUpgrade() {
-    if (current >= lureCost) {
-      current -= lureCost;
-      lureCost *= 3;
-      clickValue += 3;
-      lureButton.textContent = `Buy lure (+3 per click)(-${lureCost})`;
-      updateDisplay();
-    } else {
-      noticeMessage.textContent = "Insuffishent Funds!";
-    }
+  function load() {
+    const saved = JSON.parse(localStorage.getItem('clickerSave')||'null')
+    if (!saved) return
+    Object.assign(window, saved)
+    // restart intervals if needed
+    if (kids>0)    startSons()
+    if (fishers>0) startFishers()
+    if (dads>0)    startDads()
   }
 
-  function hireSon() {
-    if (current >= hireSonCost) {
-      current -= hireSonCost;
-      Children++;
-      hireSonCost *= 1.5;
-      sonButton.textContent = `Hire Son (+${Children}/5s)(-${hireSonCost})`;
-      startSonFishing();
-      updateDisplay();
-    } else {
-      noticeMessage.textContent = "Insuffishent Funds!";
-    }
+  setInterval(save, 60_000)
+
+  //–– CLICK & UPGRADES ––––––––––––––––––––––––––––––––––––––––––––––––
+  fiskBtn.onclick = () => {
+    current += clickValue
+    notice.textContent = ''
+    updateDisplay()
   }
 
-  function startSonFishing() {
-    if (!sonSpeed) {
-      sonSpeed = setInterval(() => {
-      current += Children;
-      updateDisplay();
-      }, 5000); // every 5 seconds
-    }
+  bobBtn.onclick =()=>{
+    if (current < bobberCost) return notice.textContent='Insufficient Funds!'
+    current    -= bobberCost
+    bobberCost *= 5
+    clickValue ++
+    bobbers   ++
+    notice.textContent = ''
+    updateDisplay()
   }
 
-    function hireFisher() {
-    if (current >= fisherCost) {
-      current -= fisherCost;
-      fishers++;
-      fisherCost *= 1.5;
-      fisherButton.textContent = `Hire Fisherman (+${fishers}/1s)(-${fisherCost})`;
-      startFisherFishing();
-      updateDisplay();
-    } else {
-      noticeMessage.textContent = "Insuffishent Funds!";
-    }
+  lureBtn.onclick=()=>{
+    if (current < lureCost) return notice.textContent='Insufficient Funds!'
+    current   -= lureCost
+    lureCost  *= 4
+    clickValue+= 3
+    lures    ++
+    notice.textContent=''
+    updateDisplay()
   }
 
-  function startFisherFishing() {
-    if (!fisherSpeed) {
-      fisherSpeed = setInterval(() => {
-      current += fishers;
-      updateDisplay();
-      }, 1000); // every second
-    }
+  rodBtn.onclick =()=>{
+    if (current < rodCost) return notice.textContent='Insufficient Funds!'
+    current   -= rodCost
+    rodCost   *= 3
+    clickValue+= 5
+    rods     ++
+    notice.textContent=''
+    updateDisplay()
   }
 
-  sonButton.addEventListener("click", hireSon);
-  fishingButton.addEventListener("click", fishingClick);
-  resetButton.addEventListener("click", reset_zero);
-  bobberButton.addEventListener("click", bobberUpgrade);
-  fisherButton.addEventListener("click", hireFisher);
-  lureButton.addEventListener("click", lureUpgrade);
+  sonBtn.onclick =()=>{
+    if (current < hireSonCost) return notice.textContent='Insufficient Funds!'
+    current   -= hireSonCost
+    hireSonCost = Math.ceil(hireSonCost * 1.15)
+    kids     ++
+    notice.textContent=''
+    startSons()
+    updateDisplay()
+  }
 
-  updateDisplay();
+  fisherBtn.onclick =()=>{
+    if (current < hireFisherCost) return notice.textContent='Insufficient Funds!'
+    current      -= hireFisherCost
+    hireFisherCost = Math.ceil(hireFisherCost * 1.15)
+    fishers    ++
+    notice.textContent=''
+    startFishers()
+    updateDisplay()
+  }
+
+  dadBtn.onclick =()=>{
+    if (current < hireDadCost) return notice.textContent='Insufficient Funds!'
+    current   -= hireDadCost
+    hireDadCost = Math.ceil(hireDadCost * 1.15)
+    dads      ++
+    notice.textContent=''
+    startDads()
+    updateDisplay()
+  }
+
+  //–– AUTO-FISHING –––––––––––––––––––––––––––––––––––––––––––––––––––
+  function startSons() {
+    if (sonInterval) return
+    sonInterval = setInterval(()=>{
+      current += kids
+      updateDisplay()
+    }, 5000)
+  }
+
+  function startFishers() {
+    if (fisherInterval) return
+    fisherInterval = setInterval(()=>{
+      current += fishers
+      updateDisplay()
+    }, 1000)
+  }
+
+  function startDads() {
+    if (dadInterval) return
+    dadInterval = setInterval(()=>{
+      current += dads
+      updateDisplay()
+    }, 500)
+  }
+
+  //–– INIT –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+  load()
+  updateDisplay()
+
   </script>
-  </body>
+</body>
 </html>

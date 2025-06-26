@@ -25,7 +25,7 @@ button {
   font-size: 1.2rem;
   padding: 0.75rem 1.5rem;
   margin: 0.5rem;
-  border: none;
+  border: black solid 1px;
   border-radius: 10px;
   background-color: #4CAF50;
   color: white;
@@ -40,14 +40,14 @@ button:hover {
 .container {
   display: flex;
   justify-content: space-between;
-  width: 100%; /* Adjust based on your preference */
+  width: 100%; 
   max-width: 100%;
   margin: 0;
   padding: 20px;
 }
 
 .wide_button {
-  width: 500px;
+  width: 600px;
 }
 
 #notice {
@@ -57,5 +57,20 @@ button:hover {
 
 .leftBox,
 .rightBox {
-  width: auto; /* Keep them from taking the full width */
+  width: auto; 
+}
+
+.stats{
+  margin-right: 10px;
+  font-size: 18px;
+  color: white;
+  border-radius: 10px;
+  border: solid black 1px;
+  background-color: #4CAF50;
+  padding: 0.75rem 1.5rem;
+}
+
+.Stats_container {
+  display: flex;
+  align-items: center;
 }
