@@ -130,16 +130,34 @@
   }
 
   function load() {
-    const saved = JSON.parse(localStorage.getItem('clickerSave')||'null')
+    const saved = JSON.parse(localStorage.getItem('clickerSave') || 'null')
     if (!saved) return
-    Object.assign(window, saved)
-    // restart intervals if needed
-    if (kids>0)    startSons()
-    if (fishers>0) startFishers()
-    if (dads>0)    startDads()
+
+      // OVERWRITE your local variables with the saved ones:
+      ({
+      current,
+      clickValue,
+      bobberCost,
+      lureCost,
+      rodCost,
+      hireSonCost,
+      hireFisherCost,
+      hireDadCost,
+      kids,
+      fishers,
+      dads,
+      bobbers,
+      lures,
+      rods
+    } = saved)
+
+    // now restart your auto-fish intervals
+    if (kids    > 0) startSons()
+    if (fishers > 0) startFishers()
+    if (dads    > 0) startDads()
   }
 
-  setInterval(save, 60_000)
+  setInterval(save, 20_000)
 
   //–– CLICK & UPGRADES ––––––––––––––––––––––––––––––––––––––––––––––––
   fiskBtn.onclick = () => {
