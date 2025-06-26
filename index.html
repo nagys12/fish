@@ -157,7 +157,7 @@
     if (dads    > 0) startDads()
   }
 
-  setInterval(save, 20_000)
+  setInterval(save, 8_000)
 
   //–– CLICK & UPGRADES ––––––––––––––––––––––––––––––––––––––––––––––––
   fiskBtn.onclick = () => {
@@ -227,29 +227,42 @@
   }
 
   //–– AUTO-FISHING –––––––––––––––––––––––––––––––––––––––––––––––––––
-  function startSons() {
-    if (sonInterval) return
-    sonInterval = setInterval(()=>{
-      current += kids
-      updateDisplay()
-    }, 5000)
-  }
-
   function startFishers() {
-    if (fisherInterval) return
-    fisherInterval = setInterval(()=>{
-      current += fishers
-      updateDisplay()
-    }, 1000)
-  }
+  if (fisherInterval) return;
+  fisherInterval = setInterval(() => {
+    // instead of `current += fishers;`
+    for (let i = 0; i < fishers; i++) {
+      setTimeout(() => {
+        current++;
+        updateDisplay();
+      }, i * 10);   // ← 10ms between each “fisher” click
+    }
+  }, 1000);
+}
 
-  function startDads() {
-    if (dadInterval) return
-    dadInterval = setInterval(()=>{
-      current += dads
-      updateDisplay()
-    }, 500)
-  }
+function startSons() {
+  if (sonInterval) return;
+  sonInterval = setInterval(() => {
+    for (let i = 0; i < kids; i++) {
+      setTimeout(() => {
+        current++;
+        updateDisplay();
+      }, i * 150);   // ← 150ms between each “son” click
+    }
+  }, 5000);
+}
+
+function startDads() {
+  if (dadInterval) return;
+  dadInterval = setInterval(() => {
+    for (let i = 0; i < dads; i++) {
+      setTimeout(() => {
+        current++;
+        updateDisplay();
+      }, i * 20);    // ← 20ms between each “dad” click
+    }
+  }, 500);
+}
 
   //–– INIT –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
   load()
